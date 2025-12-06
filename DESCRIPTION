@@ -1,7 +1,7 @@
 Package: psynetsim
 Type: Package
 Title: Simulating treatment intervention to symptom network
-Version: 0.1.0
+Version: 0.2.0
 Author: Takumi Omizu
 Maintainer: Takumi Omizu <tomizu@psy.senshu-u.ac.jp>
 Description: More about what it does (maybe more than one line)
