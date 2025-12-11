@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulate_threshold.R
 \name{simulate_network_threshold}
 \alias{simulate_network_threshold}
-\title{Simulating Dynamic Treatment Intervention (With Duration Control)}
+\title{Simulating Dynamic Treatment Intervention (Fixed X-Axis)}
 \usage{
 simulate_network_threshold(
   W_init,
@@ -45,5 +45,5 @@ simulate_network_threshold(
 A list containing plot_data, raw_data, final_network, network_history_full, result_plot, and result_text.
 }
 \description{
-\code{simulate_network_threshold} simulates an intervention where the thresholds of targeted symptoms are directly manipulated. It allows defining how long the intervention lasts.
+\code{simulate_network_threshold} simulates an intervention with duration control and fixed plot axis.
 }

@@ -1,5 +1,5 @@
-#' @title Simulating Dynamic Treatment Intervention (With Duration Control)
-#' @description \code{simulate_network_threshold} simulates an intervention where the thresholds of targeted symptoms are directly manipulated. It allows defining how long the intervention lasts.
+#' @title Simulating Dynamic Treatment Intervention (Fixed X-Axis)
+#' @description \code{simulate_network_threshold} simulates an intervention with duration control and fixed plot axis.
 #'
 #' @param W_init A square matrix representing the initial weighted connections.
 #' @param b_init A numeric vector representing the initial thresholds.
@@ -21,7 +21,7 @@
 #' @importFrom tibble tibble
 #' @importFrom dplyr mutate left_join
 #' @importFrom tidyr pivot_longer
-#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon scale_fill_manual scale_color_manual scale_y_continuous theme_classic theme element_text labs ggplotGrob geom_vline
+#' @importFrom ggplot2 ggplot aes geom_line geom_ribbon scale_fill_manual scale_color_manual scale_y_continuous scale_x_continuous theme_classic theme element_text labs ggplotGrob geom_vline
 #' @importFrom cowplot ggdraw draw_image
 #' @importFrom gridExtra grid.arrange
 #' @importFrom grDevices dev.off tiff
@@ -34,7 +34,7 @@ simulate_network_threshold <- function(W_init,
                                        connectivity = 1,
                                        trial = 10,
                                        baseline_iteration = 10,
-                                       intervention_duration = 20, #介入の持続期間
+                                       intervention_duration = 20,
                                        num_updates = 5,
                                        update_interval = 10,
                                        follow_up_iteration = 10,
@@ -116,7 +116,6 @@ simulate_network_threshold <- function(W_init,
     total_steps <- baseline_iteration + (num_updates * update_interval) + follow_up_iteration
     X_matrix_full <- matrix(0, nrow = total_steps, ncol = num_symptom)
 
-    # 介入終了のタイミングを計算
     intervention_end_step <- baseline_iteration + intervention_duration
 
     safe_sample <- function(prob) {
@@ -128,7 +127,7 @@ simulate_network_threshold <- function(W_init,
 
     current_step <- 0
 
-    # --- Phase 1: Baseline ---
+    # Phase 1: Baseline
     for (s in 1:baseline_iteration) {
       current_step <- current_step + 1
       A <- numeric(num_symptom)
@@ -144,24 +143,21 @@ simulate_network_threshold <- function(W_init,
       X_matrix_full[current_step, ] <- X
     }
 
-    # --- Start Intervention ---
-    # ここで閾値を上げる
+    # Intervention Start
     b <- b + target
     history_list[[2]] <- list(step_index = current_step, phase = "Intervention_Start", W = W, b = b)
 
-    # --- Phase 2: Dynamic Updates ---
+    # Phase 2: Dynamic Updates
     for (i in 1:num_updates) {
       X_history_current <- matrix(0, nrow = update_interval, ncol = num_symptom)
       for (k in 1:update_interval) {
         current_step <- current_step + 1
 
-        # === 介入終了チェック ===
+        # Intervention End Check
         if (current_step == intervention_end_step) {
-          b <- b - target # 閾値を下げる（介入除去）
-          # 履歴に記録
+          b <- b - target
           history_list[[length(history_list) + 1]] <- list(step_index = current_step, phase = "Intervention_End", W = W, b = b)
         }
-        # ========================
 
         A <- numeric(num_symptom)
         P_prob <- numeric(num_symptom)
@@ -177,7 +173,6 @@ simulate_network_threshold <- function(W_init,
         X_matrix_full[current_step, ] <- X
       }
 
-      # ネットワーク再推定
       symptom_data <- X_history_current
       if (stats::sd(as.vector(symptom_data)) > 0) {
         estimated <- estimate_symptom_network(symptom_data)
@@ -198,16 +193,15 @@ simulate_network_threshold <- function(W_init,
       }
     }
 
-    # --- Phase 3: Follow-up ---
+    # Phase 3: Follow-up
     for (k in 1:follow_up_iteration) {
       current_step <- current_step + 1
 
-      # === 介入終了チェック (期間が長くFollow-up中に終了する場合用) ===
+      # Intervention End Check (if duration extends into follow-up)
       if (current_step == intervention_end_step) {
         b <- b - target
         history_list[[length(history_list) + 1]] <- list(step_index = current_step, phase = "Intervention_End", W = W, b = b)
       }
-      # ========================
 
       A <- numeric(num_symptom)
       P_prob <- numeric(num_symptom)
@@ -305,18 +299,17 @@ simulate_network_threshold <- function(W_init,
   })
   grDevices::dev.off()
 
-  # 介入終了タイミング
   intervention_end_x <- baseline_iteration + intervention_duration
+
 
   p2 <- tibble::tibble(time = 1:total_time, mean = last_trial_mean_traj, sd = last_trial_sd_traj) |>
     ggplot2::ggplot(ggplot2::aes(x = time, y = mean)) +
     ggplot2::geom_line(color = "blue") +
     ggplot2::geom_ribbon(ggplot2::aes(ymin = mean - sd, ymax = mean + sd), alpha = 0.2, fill = "blue") +
-    # 介入開始ライン
     ggplot2::geom_vline(xintercept = baseline_iteration + 0.5, linetype="dashed", color="gray50") +
-    # 介入終了ライン (もし全期間内であれば表示)
     {if(intervention_end_x < total_time) ggplot2::geom_vline(xintercept = intervention_end_x + 0.5, linetype="dotted", color="red")} +
     ggplot2::scale_y_continuous(limits = c(0.0, 1.0), oob = scales::squish) +
+    ggplot2::scale_x_continuous(limits = c(1, total_time), expand = c(0, 0)) +
     ggplot2::theme_classic() +
     ggplot2::labs(x = "Time Step", y = "Activation", title = "Global Response (Final Trial)",
                   caption = "Dashed: Intervention Start | Dotted: Intervention End")
