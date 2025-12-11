@@ -2,7 +2,7 @@
 % Please edit documentation in R/simulate_threshold.R
 \name{simulate_network_threshold}
 \alias{simulate_network_threshold}
-\title{Simulating Dynamic Treatment Intervention (Plot Last Trial)}
+\title{Simulating Dynamic Treatment Intervention (With Duration Control)}
 \usage{
 simulate_network_threshold(
   W_init,
@@ -11,6 +11,7 @@ simulate_network_threshold(
   connectivity = 1,
   trial = 10,
   baseline_iteration = 10,
+  intervention_duration = 20,
   num_updates = 5,
   update_interval = 10,
   follow_up_iteration = 10,
@@ -22,13 +23,15 @@ simulate_network_threshold(
 
 \item{b_init}{A numeric vector representing the initial thresholds.}
 
-\item{target}{A numeric vector matching the number of symptoms. Values indicate the magnitude of intervention added to each symptom's threshold. Use 0 for no intervention.}
+\item{target}{A numeric vector matching the number of symptoms. Values indicate the magnitude of intervention added to each symptom's threshold.}
 
 \item{connectivity}{A numeric value (default: 1) controlling overall connection strength.}
 
 \item{trial}{An integer (default: 10) specifying the number of simulation trials.}
 
 \item{baseline_iteration}{An integer (default: 10) steps before intervention.}
+
+\item{intervention_duration}{An integer (default: 20). How many steps the intervention lasts before being removed.}
 
 \item{num_updates}{An integer (default: 5). How many times the network should be re-estimated after intervention.}
 
@@ -39,14 +42,8 @@ simulate_network_threshold(
 \item{symptom_name}{A character vector for symptom names.}
 }
 \value{
-A list containing:
-\item{plot_data}{A dataframe for ggploting symptom trajectories.}
-\item{raw_data}{A 3D array \link{Trial, Time, Symptom} containing raw activation values.}
-\item{final_network}{A list containing the mean W and b at the final step.}
-\item{network_history_full}{A nested list containing the full history of network structures for every trial and update.}
-\item{result_plot}{A grid object displaying the network structure of the last trial and the global activation trajectory of the last trial.}
-\item{result_text}{A summary string of the final activation level.}
+A list containing plot_data, raw_data, final_network, network_history_full, result_plot, and result_text.
 }
 \description{
-\code{simulate_network_threshold} simulates an intervention where the thresholds of targeted symptoms are directly manipulated. It returns full data history and plots the network structure and symptom trajectories from the \strong{final trial} (not the average).
+\code{simulate_network_threshold} simulates an intervention where the thresholds of targeted symptoms are directly manipulated. It allows defining how long the intervention lasts.
 }
